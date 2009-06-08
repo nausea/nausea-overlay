@@ -1,0 +1,104 @@
+--- configure.in.orig	2009-06-08 19:41:39.182232642 +0300
++++ configure.in	2009-06-08 20:54:42.330231850 +0300
+@@ -4,6 +4,7 @@
+ # Process this file with autoconf to produce a configure script.
+ 
+ AC_INIT(src/rcsbase.h)
++AC_CONFIG_HEADERS([src/config.h])
+ 
+ # Set up simple `diff' test.
+ echo 0 >conftest0
+@@ -21,6 +22,17 @@
+   [with_diffutils=no]
+ )
+ 
++AC_ARG_ENABLE(readline,
++  [  --enable-readline       enable readline support],
++  [enable_readline=$enableval],
++  [enable_readline=no]
++)
++
++if test "$enable_readline" = "yes"; then
++   AC_DEFINE([FEAT_READLINE], [1], [Add readline support])
++   : ${LIBS=-lreadline}
++fi
++
+ case $with_diffutils in
+ yes)
+   : ${DIFF='$(bindir)/diff'}
+--- src/rcsbase.h.orig	2009-06-08 20:09:33.979481574 +0300
++++ src/rcsbase.h	2009-06-08 20:45:43.859232661 +0300
+@@ -187,7 +187,7 @@
+ 
+ 
+ #include "conf.h"
+-
++#include "config.h"
+ 
+ #define EXIT_TROUBLE DIFF_TROUBLE
+ 
+@@ -330,7 +330,9 @@
+  * there should be no overlap among SDELIM, KDELIM, and VDELIM
+  */
+ 
++#ifndef FEAT_READLINE
+ #define isdigit(c) (((unsigned)(c)-'0') <= 9) /* faster than ctab[c]==DIGIT */
++#endif
+ 
+ 
+ 
+--- src/rcsgen.c.orig	2009-06-08 18:57:13.431231165 +0300
++++ src/rcsgen.c	2009-06-08 21:31:56.202232018 +0300
+@@ -418,6 +418,11 @@
+         }
+ }
+ 
++#ifdef FEAT_READLINE
++# include <readline/readline.h>
++#endif
++
++
+ 	struct cbuf
+ getsstdin(option, name, note, buf)
+ 	char const *option, *name, *note;
+@@ -430,7 +435,7 @@
+ 
+ 	if (tty) {
+ 	    aprintf(stderr,
+-		"enter %s, terminated with single '.' or end of file:\n%s>> ",
++		"enter %s, terminated with single '.' or end of file:\n%s",
+ 		name, note
+ 	    );
+ 	    eflush();
+@@ -439,6 +444,9 @@
+ 		name, option, name
+ 	    );
+ 	
++	#ifndef FEAT_READLINE
++	aputs(">> ", stderr);
++	eflush();
+ 	for (
+ 	   i = 0,  p = 0;
+ 	   c = getcstdin(),  !feof(stdin);
+@@ -453,6 +461,21 @@
+ 				aputs(">> ", stderr);
+ 				eflush();
+ 			}
++	#else
++	p = 0;
++	i = 0;
++	bufrealloc(buf, 1);
++	buf->string[0] = '\0';
++	while (p = readline(">> ")) {
++	  if (0 == strcmp(p, ".")) break;
++	  i += strlen(p) + 1;
++	  bufrealloc(buf, i);
++	  strcat(buf->string, p);
++	  strcat(buf->string, "\n");
++	  free(p);
++	}
++	p = buf->string;
++	#endif
+ 	return cleanlogmsg(p, i);
+ }
+ 
