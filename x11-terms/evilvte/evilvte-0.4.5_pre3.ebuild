@@ -28,13 +28,14 @@ src_unpack() {
 	unpack ${A}
 	cd "${S}"
 
-	epatch "${FILESDIR}"/${PN}-scrollback.patch
 }
 
 src_prepare() {
 	if [[ -f /etc/${PN}/config.h ]]; then
 		cp /etc/${PN}/config.h src/ || die "copying config.h failed"
 	fi
+
+	epatch "${FILESDIR}"/${PN}-scrollback.patch
 }
 
 src_configure() {
