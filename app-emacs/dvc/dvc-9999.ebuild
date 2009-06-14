@@ -14,7 +14,7 @@ LICENSE="GPL-2"
 IUSE=""
 
 SLOT="0"
-KEYWORDS="x86 amd64"
+KEYWORDS="~amd64"
 
 src_prepare() {
 	eautoreconf
