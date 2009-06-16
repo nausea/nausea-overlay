@@ -20,7 +20,7 @@ src_compile() {
 }
 
 src_install() {
-	mkdir -p "${D}/usr/include"
-	mkdir -p "${D}/usr/lib"
+	dodir /usr/lib
+	dodir /usr/include
 	emake DESTDIR="${D}" install || die "emake install failed"
 }
