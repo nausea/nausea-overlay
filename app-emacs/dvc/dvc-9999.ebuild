@@ -11,7 +11,7 @@ HOMEPAGE="http://download.gna.org/dvc"
 EBZR_REPO_URI="http://bzr.xsteve.at/dvc/"
 EBZR_BRANCH=""
 LICENSE="GPL-2"
-IUSE=""
+IUSE="doc"
 
 SLOT="0"
 KEYWORDS="~amd64"
@@ -29,5 +29,9 @@ src_compile() {
 }
 
 src_install() {
+	if use doc; then
+		emake info
+		doinfo texinfo/${PN}.info
+	fi
 	emake install || die "install failed"
 }
